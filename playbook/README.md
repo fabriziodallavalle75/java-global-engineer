@@ -1,50 +1,76 @@
 # Java Global Engineer – Professional Playbook
 
+## Bem-vindo
+
+Este diretório reúne o material utilizado durante a construção de um produto real.
+
+O objetivo deste Playbook não é apenas ensinar tecnologias, mas apresentar um processo estruturado para transformar uma ideia em um produto de software, seguindo boas práticas de arquitetura, engenharia de software e desenvolvimento.
+
+Ao longo da jornada serão abordadas as atividades normalmente conduzidas por um Arquiteto de Soluções, desde a definição do problema de negócio até a implementação e evolução da solução.
+
+---
+
 ## Objetivo
 
-Este diretório contém o material utilizado durante a construção do **OmniBridge** e representa a jornada de preparação para atuação como Desenvolvedor Java Sênior e Arquiteto de Soluções em empresas internacionais.
+O foco deste Playbook é ensinar **como pensar**, **como tomar decisões** e **como conduzir a construção de um produto de software**.
 
-O foco do Playbook não é apenas ensinar tecnologias, mas registrar o processo de tomada de decisões, organização do trabalho e evolução de um produto real.
+Durante essa jornada serão apresentados processos, métodos e boas práticas para:
 
-## Organização
+* Compreender um problema de negócio.
+* Definir a visão de um produto.
+* Transformar uma ideia em requisitos.
+* Definir uma arquitetura orientada pelo domínio.
+* Registrar decisões arquiteturais.
+* Organizar e evoluir uma solução de forma incremental.
+* Aplicar boas práticas de engenharia de software durante todo o desenvolvimento.
 
-```text
-00-foundations/
-01-java-modern/
-02-domain-driven-design/
-03-marketplace-integration/
-04-spring-boot/
-...
-12-career/
-```
+Mais do que apresentar uma arquitetura pronta, este material mostra o processo utilizado para construí-la.
 
-Cada etapa representa uma evolução da jornada de aprendizado e prepara a construção do produto.
+---
 
-## Princípios
+## Filosofia
+
+Este Playbook foi construído seguindo alguns princípios fundamentais.
 
 * Aprender construindo um produto real.
+* Arquitetura orientada pelo negócio.
+* Decisões baseadas em requisitos.
 * Evolução incremental.
-* Documentar apenas o necessário.
-* Arquitetura orientada por domínio.
-* Decisões baseadas em requisitos, não em tendências.
 * Simplicidade antes de complexidade.
+* Documentar apenas o necessário.
+* Separação clara entre produto, arquitetura e implementação.
 
-## Produto desenvolvido
+---
 
-Todo o material referente ao produto encontra-se em:
+## Produto de Referência
 
-```text
-/omnibridge
-```
+O produto utilizado durante toda a jornada é o **OmniBridge**.
 
-Lá estão localizados:
+Toda a documentação oficial, código-fonte, diagramas e decisões arquiteturais do produto encontram-se no diretório **`/omnibridge`**.
 
-* Código-fonte
-* Documentação do produto
-* Architecture Decision Records (ADRs)
-* Diagramas
-* APIs
+O Playbook descreve o processo.
 
-O Playbook descreve a jornada.
+O OmniBridge demonstra a aplicação prática desse processo.
 
-O OmniBridge representa o resultado dessa jornada.
+---
+
+## Público-Alvo
+
+Este material foi desenvolvido para profissionais que desejam evoluir para funções como:
+
+* Desenvolvedor Java Sênior.
+* Arquiteto de Software.
+* Arquiteto de Soluções.
+* Tech Lead.
+
+Embora os exemplos utilizem Java e Spring Boot, os conceitos apresentados são independentes de linguagem, framework ou plataforma e podem ser aplicados em diferentes contextos.
+
+---
+
+## Como Utilizar
+
+Este Playbook foi concebido para ser estudado de forma sequencial.
+
+Cada etapa prepara o conhecimento necessário para a seguinte, permitindo compreender não apenas **o que** fazer, mas principalmente **por que** cada decisão foi tomada.
+
+Ao final da jornada, o objetivo é que o leitor seja capaz de conduzir a definição de um produto, elaborar sua arquitetura e implementar uma solução de forma estruturada, aplicando boas práticas amplamente utilizadas no mercado.
