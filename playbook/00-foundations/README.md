@@ -41,3 +41,5 @@ Os documentos desta seção foram construídos seguindo alguns princípios simpl
 Ao concluir esta etapa, o leitor deverá ser capaz de transformar uma ideia em uma definição clara de produto, estabelecer uma arquitetura inicial consistente e preparar a solução para o início do desenvolvimento.
 
 Esses artefatos servirão como referência para todas as etapas seguintes do projeto.
+
+A sequencia sugerida de consumoi deste material é: vision > prd > architecture > adr

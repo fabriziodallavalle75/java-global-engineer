@@ -2,31 +2,26 @@
 
 **Produto:** OmniBridge
 **Versão:** 1.0
-**Status:** Proposed
+**Status:** Accepted
 **Tipo:** Tático
 
 ---
 
 ## Contexto
 
-O OmniBridge integra-se com marketplaces que podem apresentar indisponibilidade temporária, limites de requisições, respostas lentas e falhas intermitentes.
+O OmniBridge integra-se com marketplaces e outros sistemas externos que podem apresentar indisponibilidade temporária, limites de requisições, respostas lentas e falhas intermitentes.
 
-Diversas operações do produto não precisam ser concluídas durante a requisição original, como:
+Diversas operações do produto não precisam ser concluídas durante a requisição original, como sincronizações, integrações, notificações e distribuição de informações entre módulos.
 
-* Processamento de notificações recebidas dos marketplaces.
-* Importação e atualização de pedidos.
-* Sincronização de produtos, preços e estoques.
-* Comunicação de fatos de negócio entre módulos.
-* Reprocessamento de integrações com falha.
-* Distribuição de eventos para múltiplos consumidores.
+Além disso, a arquitetura do OmniBridge foi concebida para permitir a evolução incremental da solução, preservando o baixo acoplamento entre seus módulos.
 
-O projeto também será utilizado como portfólio técnico para vagas internacionais de desenvolvimento Java sênior e arquitetura de soluções. Portanto, deverá demonstrar competências relacionadas a arquiteturas orientadas a eventos, mensageria, resiliência e processamento distribuído.
+Para atender a esses requisitos, torna-se necessário definir uma estratégia de processamento assíncrono que seja confiável, escalável e aderente às necessidades atuais e futuras do produto.
 
 ---
 
 ## Questão Arquitetural
 
-Qual estratégia de processamento assíncrono oferece confiabilidade, escalabilidade, rastreabilidade e aderência ao domínio de integração do OmniBridge?
+Como o OmniBridge deverá executar operações assíncronas de forma confiável, preservando o desacoplamento entre módulos e permitindo a evolução futura da arquitetura?
 
 ---
 
@@ -39,13 +34,13 @@ Todas as operações seriam executadas durante a requisição que iniciou o proc
 **Vantagens**
 
 * Implementação simples.
-* Fluxos fáceis de acompanhar.
-* Resultado imediato.
+* Fluxo fácil de compreender.
+* Resposta imediata.
 
 **Desvantagens**
 
-* Dependência direta da disponibilidade dos marketplaces.
 * Maior tempo de resposta.
+* Forte dependência da disponibilidade dos sistemas externos.
 * Baixa resiliência.
 * Dificuldade para retries e reprocessamentos.
 * Inadequado para múltiplos consumidores.
@@ -54,7 +49,7 @@ Todas as operações seriam executadas durante a requisição que iniciou o proc
 
 ### Processamento assíncrono em memória
 
-As operações seriam executadas por threads ou executores internos da aplicação, sem persistência externa.
+As operações seriam executadas por threads internas da aplicação.
 
 **Vantagens**
 
@@ -63,121 +58,96 @@ As operações seriam executadas por threads ou executores internos da aplicaç�
 
 **Desvantagens**
 
-* Perda de trabalhos em reinicializações.
+* Perda de trabalhos em caso de reinicialização.
 * Baixa rastreabilidade.
-* Dificuldade para escalabilidade e reprocessamento.
-* Inadequado para operações relevantes de integração.
+* Escalabilidade limitada.
+* Inadequado para operações críticas de integração.
 
 ---
 
-### Fila persistente no PostgreSQL
+### Fila persistente em banco de dados
 
-As operações assíncronas seriam registradas no banco relacional e processadas por trabalhadores internos.
+As operações seriam registradas no banco relacional e processadas posteriormente.
 
 **Vantagens**
 
-* Não exige nova infraestrutura.
-* Permite persistência, retries e reprocessamento.
-* Adequada a volumes reduzidos.
+* Persistência dos trabalhos.
+* Não exige infraestrutura adicional.
+* Suporte a retries e reprocessamentos.
 
 **Desvantagens**
 
 * Compartilha recursos com o banco transacional.
-* Exige implementação própria de concorrência e entrega.
 * Escalabilidade limitada.
-* Menor aderência a múltiplos consumidores e replay de eventos.
-* Reduz o valor demonstrativo do projeto como arquitetura orientada a eventos.
+* Exige implementação própria da infraestrutura de processamento.
+* Menor aderência ao modelo orientado a eventos adotado pelo produto.
 
 ---
 
-### RabbitMQ
+### Plataforma externa de mensageria
 
-Utilização de um message broker baseado em filas e roteamento de mensagens.
-
-**Vantagens**
-
-* Adequado para filas de trabalho e distribuição de comandos.
-* Suporte a acknowledgements, retries e dead-letter queues.
-* Roteamento flexível.
-* Menor complexidade conceitual para alguns fluxos.
-
-**Desvantagens**
-
-* Retenção e replay não são o foco principal da plataforma.
-* Menor aderência a fluxos de eventos duráveis e múltiplos consumidores independentes.
-* Histórico de eventos exige soluções complementares.
-
----
-
-### Apache Kafka
-
-Utilização de uma plataforma distribuída de streaming de eventos.
+Utilização de uma plataforma especializada para publicação e consumo de eventos.
 
 **Vantagens**
 
-* Persistência e retenção dos eventos.
-* Possibilidade de replay.
-* Escalabilidade por partições e consumer groups.
-* Suporte natural a múltiplos consumidores independentes.
-* Ordenação por chave dentro da partição.
-* Forte aderência ao domínio de integração e distribuição de eventos.
-* Tecnologia amplamente utilizada em arquiteturas corporativas.
+* Baixo acoplamento entre produtores e consumidores.
+* Escalabilidade.
+* Persistência dos eventos.
+* Múltiplos consumidores independentes.
+* Reprocessamento e replay.
+* Melhor aderência ao domínio do OmniBridge.
 
 **Desvantagens**
 
 * Maior complexidade operacional.
-* Exige decisões sobre tópicos, partições, chaves e retenção.
-* Necessidade de tratamento explícito de idempotência e compatibilidade de eventos.
-* Pode ser excessivo para aplicações pequenas sem requisitos de integração relevantes.
+* Necessidade de infraestrutura dedicada.
+* Exige governança dos contratos de eventos.
 
 ---
 
 ## Decisão
 
-O OmniBridge utilizará **Apache Kafka** como plataforma principal para processamento assíncrono e comunicação orientada a eventos.
+O OmniBridge adotará uma estratégia de processamento assíncrono baseada no **Apache Kafka**.
 
-O Kafka será utilizado para:
+O Kafka será utilizado para distribuir eventos de negócio entre módulos e integrações externas sempre que não houver necessidade de resposta imediata.
 
-* Receber e distribuir eventos de integração.
-* Comunicar fatos de negócio entre módulos quando não houver necessidade de resposta imediata.
-* Processar sincronizações assíncronas.
-* Permitir múltiplos consumidores independentes.
-* Suportar reprocessamento por meio da retenção e do replay de eventos.
-
-Chamadas que exigirem resposta imediata continuarão utilizando a API pública síncrona dos módulos, conforme definido no ADR-004.
+Operações que exigirem resposta síncrona continuarão sendo realizadas exclusivamente por meio das APIs públicas dos módulos, conforme definido no ADR-004.
 
 ---
 
-## Modelo de Comunicação
+## Princípios do Processamento Assíncrono
+
+O processamento assíncrono do OmniBridge seguirá os seguintes princípios arquiteturais:
+
+* Eventos representam fatos de negócio.
+* Eventos são publicados somente após a conclusão da operação de negócio.
+* Eventos não serão utilizados para consultas.
+* Chamadas que exigirem resposta imediata utilizarão APIs públicas.
+* Consumidores deverão ser idempotentes.
+* Eventos não conhecerão seus consumidores.
+* O domínio permanecerá independente da tecnologia de mensageria.
+
+---
+
+## Modelo Conceitual
 
 ```text
-Marketplace
-     |
-     v
-Marketplace Adapter
-     |
-     v
-Kafka Topic
-     |
-     +--------> Integration Consumer
-     |
-     +--------> Orders Consumer
-     |
-     +--------> Monitoring Consumer
+Business Operation
+        │
+        ▼
+ Business Event
+        │
+        ▼
+     Apache Kafka
+        │
+   ┌────┴────┐
+   ▼         ▼
+Consumer A Consumer B
 ```
 
-Eventos internos seguirão o fluxo:
+A operação de negócio produz um fato relevante.
 
-```text
-Módulo produtor
-      |
-      v
-Kafka Topic
-      |
-      +--------> Consumidor A
-      |
-      +--------> Consumidor B
-```
+Esse fato é publicado em um tópico do Kafka e poderá ser processado por um ou mais consumidores independentes.
 
 ---
 
@@ -186,128 +156,77 @@ Kafka Topic
 Os eventos deverão:
 
 * Representar fatos já ocorridos.
-* Possuir nomes no passado.
 * Ser imutáveis.
-* Não conhecer seus consumidores.
-* Transportar apenas os dados necessários.
 * Possuir identificador único.
 * Possuir data e hora de ocorrência.
 * Possuir versão de contrato.
-* Possuir chave adequada para particionamento e ordenação.
+* Conter apenas as informações necessárias ao processamento.
 
-Exemplos:
-
-```text
-MarketplaceNotificationReceived
-OrderImported
-ProductSynchronized
-InventoryUpdated
-IntegrationFailed
-```
+A definição do catálogo de eventos será realizada durante a modelagem funcional da solução.
 
 ---
 
 ## Idempotência
 
-A entrega de mensagens será tratada como **at-least-once**.
+O processamento deverá considerar que uma mesma mensagem poderá ser entregue mais de uma vez.
 
-Todo consumidor deverá ser idempotente, considerando que uma mensagem poderá ser processada mais de uma vez.
+Todo consumidor deverá ser idempotente.
 
-Quando aplicável, deverão ser utilizadas chaves de idempotência, como:
+Quando aplicável, deverão ser utilizadas chaves de idempotência para impedir efeitos duplicados de negócio.
 
-```text
-marketplace + notificationId
-marketplace + externalOrderId
-eventId
-```
+---
 
-O processamento repetido não poderá produzir efeitos de negócio duplicados.
+## Política de Processamento
+
+A estratégia de processamento deverá contemplar:
+
+* Retry automático para falhas temporárias.
+* Backoff progressivo entre tentativas.
+* Dead Letter Topic para falhas definitivas.
+* Reprocessamento manual quando necessário.
+* Registro das falhas para auditoria.
+
+Nenhuma mensagem relevante poderá ser descartada silenciosamente.
 
 ---
 
 ## Ordenação
 
-Quando a ordem dos eventos for relevante, todas as mensagens relacionadas ao mesmo agregado deverão utilizar a mesma chave de partição.
+Quando a ordem dos eventos for relevante, todas as mensagens relacionadas ao mesmo agregado deverão utilizar a mesma chave de particionamento.
 
-Exemplos:
-
-* Eventos do mesmo pedido utilizam o identificador do pedido.
-* Eventos do mesmo produto utilizam o identificador do produto.
-* Eventos da mesma integração utilizam o identificador da conexão.
-
-Não será presumida ordenação global entre todas as mensagens.
+Não será presumida ordenação global entre todos os eventos.
 
 ---
 
-## Retry e Dead-Letter Topics
+## Publicação Confiável
 
-Falhas temporárias deverão ser encaminhadas para tópicos de retry.
+Alterações persistidas no banco de dados que originarem eventos deverão utilizar o padrão **Transactional Outbox**, garantindo consistência entre a alteração do negócio e a publicação do evento.
 
-Após o esgotamento das tentativas, a mensagem deverá ser encaminhada para um dead-letter topic.
-
-Exemplo:
-
-```text
-order-import
-order-import-retry
-order-import-dlt
-```
-
-As políticas de retry deverão:
-
-* Possuir quantidade máxima de tentativas.
-* Utilizar intervalo progressivo quando aplicável.
-* Diferenciar falhas temporárias de falhas definitivas.
-* Preservar a mensagem original e o contexto do erro.
-* Permitir reprocessamento controlado.
-
-Nenhuma mensagem relevante deverá ser descartada silenciosamente.
+A implementação do mecanismo será realizada na camada de infraestrutura, permanecendo transparente ao domínio.
 
 ---
 
-## Contratos de Eventos
+## Regras Arquiteturais
 
-Os contratos dos eventos deverão possuir evolução controlada.
+O processamento assíncrono deverá obedecer às seguintes regras:
 
-Alterações deverão priorizar compatibilidade retroativa, evitando remoção ou alteração incompatível de campos já publicados.
-
-A estratégia de serialização e gerenciamento de schemas será definida em ADR específico caso a complexidade dos contratos justifique essa decisão.
-
----
-
-## Transações e Publicação Confiável
-
-A persistência de uma alteração de negócio e a publicação do evento correspondente não deverão depender de duas operações independentes sem mecanismo de consistência.
-
-Será adotado o padrão **Transactional Outbox** para casos em que uma alteração persistida precise resultar na publicação confiável de um evento.
-
-O registro de negócio e o registro da outbox deverão ser gravados na mesma transação local.
-
-Um publicador assíncrono será responsável por enviar os eventos da outbox ao Kafka.
-
-```text
-Transação local
-     |
-     +----> Alteração de negócio
-     |
-     +----> Registro na Outbox
-                    |
-                    v
-             Outbox Publisher
-                    |
-                    v
-                  Kafka
-```
+* Eventos serão utilizados exclusivamente para comunicar fatos de negócio.
+* Eventos não deverão ser utilizados para consultas entre módulos.
+* Operações síncronas utilizarão exclusivamente APIs públicas.
+* Consumidores deverão ser idempotentes.
+* O domínio não dependerá diretamente do Apache Kafka.
+* A infraestrutura de mensageria permanecerá encapsulada na camada `infrastructure`.
+* Contratos de eventos deverão evoluir preservando compatibilidade sempre que possível.
 
 ---
 
 ## Justificativa
 
-O Kafka é aderente ao papel do OmniBridge como plataforma de integração e distribuição de informações entre marketplaces e sistemas consumidores.
+O Apache Kafka foi escolhido porque o domínio do OmniBridge é naturalmente orientado à propagação de fatos de negócio entre múltiplos consumidores independentes.
 
-A retenção, o replay, os consumer groups e a capacidade de múltiplos consumidores oferecem suporte à evolução do produto e aos fluxos de integração previstos.
+Sua capacidade de retenção dos eventos, replay, escalabilidade e desacoplamento entre produtores e consumidores oferece melhor aderência às necessidades arquiteturais do produto do que abordagens baseadas exclusivamente em filas de trabalho.
 
-Embora introduza maior complexidade do que soluções internas ou baseadas no banco de dados, essa complexidade é justificada pelos requisitos de integração, resiliência, rastreabilidade e pelo objetivo do projeto de demonstrar práticas utilizadas em arquiteturas corporativas modernas.
+Embora introduza maior complexidade operacional, essa decisão prepara a solução para evoluções futuras sem comprometer a arquitetura definida para o MVP.
 
 ---
 
@@ -315,37 +234,19 @@ Embora introduza maior complexidade do que soluções internas ou baseadas no ba
 
 ### Positivas
 
+* Baixo acoplamento entre módulos.
 * Processamento assíncrono confiável.
-* Desacoplamento temporal entre produtores e consumidores.
-* Retenção e replay de eventos.
-* Escalabilidade dos consumidores.
-* Suporte a múltiplos consumidores independentes.
-* Melhor aderência à evolução futura do produto.
-* Demonstração prática de arquitetura orientada a eventos.
+* Múltiplos consumidores independentes.
+* Suporte a replay de eventos.
+* Escalabilidade da infraestrutura de processamento.
+* Preparação para futuras integrações.
 
 ### Negativas
 
-* Maior complexidade de infraestrutura e operação.
-* Necessidade de monitorar brokers, tópicos, consumidores e atrasos.
-* Exige tratamento de idempotência.
-* Exige governança dos contratos de eventos.
-* Consistência eventual em parte dos fluxos.
-* Necessidade de implementar retry, DLT e Transactional Outbox.
-
----
-
-## Regras Arquiteturais
-
-* Kafka será utilizado apenas em fluxos que realmente admitam processamento assíncrono.
-* Operações que exigirem resposta imediata utilizarão APIs públicas síncronas.
-* Eventos deverão representar fatos de negócio já ocorridos.
-* Todos os consumidores deverão ser idempotentes.
-* A ordenação será garantida apenas dentro da mesma chave de partição.
-* Falhas deverão utilizar políticas explícitas de retry e dead-letter topic.
-* Nenhuma mensagem relevante poderá ser silenciosamente descartada.
-* Alterações de negócio que originem eventos utilizarão Transactional Outbox quando for necessária publicação confiável.
-* O domínio não dependerá diretamente das APIs ou classes do Kafka.
-* A infraestrutura de mensageria permanecerá encapsulada na camada `infrastructure`.
+* Maior complexidade operacional.
+* Necessidade de monitoramento da infraestrutura de mensageria.
+* Necessidade de governança dos contratos de eventos.
+* Exige implementação de políticas de retry, DLT e idempotência.
 
 ---
 
@@ -353,11 +254,20 @@ Embora introduza maior complexidade do que soluções internas ou baseadas no ba
 
 Esta decisão deverá ser revisada caso ocorra uma ou mais das seguintes situações:
 
-* A complexidade operacional do Kafka superar os benefícios para o produto.
-* O volume de eventos permanecer reduzido e não justificar sua manutenção.
-* Os fluxos passarem a ser predominantemente baseados em filas de comandos com requisitos mais aderentes a outro broker.
-* Novos requisitos exigirem padrões de entrega, roteamento ou latência não atendidos adequadamente.
-* A infraestrutura disponível não suportar a operação confiável da plataforma.
-* A evolução da arquitetura exigir outra tecnologia de mensageria.
+* A complexidade operacional do Kafka deixe de ser justificada.
+* Novos requisitos de negócio demandem outro modelo de processamento.
+* O volume de eventos permaneça significativamente inferior ao esperado.
+* A arquitetura evolua para um modelo que exija outra estratégia de mensageria.
+* A plataforma escolhida deixe de atender aos requisitos de disponibilidade, desempenho ou escalabilidade.
 
-Até que um desses cenários se concretize, o Kafka será a plataforma padrão para processamento assíncrono e distribuição de eventos do OmniBridge.
+Até que um desses cenários se concretize, o Apache Kafka será a plataforma padrão para o processamento assíncrono do OmniBridge.
+
+---
+
+## Síntese
+
+O processamento assíncrono do OmniBridge será baseado em eventos de negócio publicados em Apache Kafka.
+
+Eventos serão utilizados exclusivamente para comunicar fatos relevantes do domínio, preservando o desacoplamento entre módulos e permitindo a evolução incremental da solução.
+
+Operações que exigirem resposta imediata continuarão utilizando exclusivamente as APIs públicas dos módulos, conforme definido no ADR-004.
